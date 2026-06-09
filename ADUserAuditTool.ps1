@@ -18,15 +18,6 @@ Collects: Name, Username, Status, Last Logon Time, Password Last Set, Department
 
 $ErrorActionPreference = "Stop"
 
-function Get-OU {
-    $ous = Get-ADOrganizationalUnit -Filter * -Properties Name, DistinguishedName
-    $ouList = @{}
-    foreach ($ou in $ous) {
-        $ouList[$ou.DistinguishedName] = $ou.Name
-    }
-    return $ouList
-}
-
 function Get-ADUserLastLogon {
     param (
         [string]$Username
@@ -133,7 +124,7 @@ function Get-ADUserPasswordAgeStatus {
     if ($null -ne $passwordLastSet) {
         $passwordAgeThreshold = (Get-Date).AddDays(-$DaysPasswordAge)
         if ($passwordLastSet -lt $passwordAgeThreshold) { 
-            return "Password Expired" } 
+            return "Password Older than 180 Days" } 
         else { 
             return "Password Valid" 
         }
@@ -160,7 +151,7 @@ function Get-ADUserAuditReport {
             PasswordLastSet  = $user.PasswordLastSet
             Department       = $user.Department
             Title            = $user.Title
-            OU               = (Get-OU)[$user.DistinguishedName]
+            OU               = ($user.DistinguishedName -split ",",2)[1]
             LockedStatus     = Get-ADUserLockedStatus -Username $user.SamAccountName
             PrivilegedStatus = Get-ADUserPrivilegedStatus -Username $user.SamAccountName
             InactiveStatus   = Get-ADUserInactiveStatus -Username $user.SamAccountName
