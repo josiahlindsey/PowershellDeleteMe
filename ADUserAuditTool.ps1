@@ -48,7 +48,11 @@ function Get-ADUserAccountStatus {
         [string]$Username
     )
     $user = Get-ADUser -Identity $Username -Properties Enabled
-    return if ($user.Enabled) { "Enabled" } else { "Disabled" }
+    if ($user.Enabled) { 
+        return "Enabled" } 
+    else { 
+        return "Disabled" 
+    }
 }
 
 function Get-ADUserTitle {
@@ -81,7 +85,11 @@ function Get-ADUserLockedStatus {
         [string]$Username
     )
     $user = Get-ADUser -Identity $Username -Properties LockedOut
-    return if ($user.LockedOut) { "Locked" } else { "Not Locked" }
+    if ($user.LockedOut) { 
+        return "Locked" } 
+    else { 
+        return "Not Locked" 
+        }
 }
 
 function Get-ADUserPrivilegedStatus {
@@ -106,7 +114,12 @@ function Get-ADUserInactiveStatus {
     $lastLogon = Get-ADUserLastLogon -Username $Username
     if ($null -ne $lastLogon) {
         $inactiveThreshold = (Get-Date).AddDays(-$DaysInactive)
-        return if ($lastLogon -lt $inactiveThreshold) { "Inactive" } else { "Active" }
+        
+        if ($lastLogon -lt $inactiveThreshold) { 
+            return "Inactive" } 
+        else { 
+            return "Active" 
+        }
     }
     return "No Logon Data"
 }
@@ -119,7 +132,11 @@ function Get-ADUserPasswordAgeStatus {
     $passwordLastSet = Get-ADUserPasswordLastSet -Username $Username
     if ($null -ne $passwordLastSet) {
         $passwordAgeThreshold = (Get-Date).AddDays(-$DaysPasswordAge)
-        return if ($passwordLastSet -lt $passwordAgeThreshold) { "Password Expired" } else { "Password Valid" }
+        if ($passwordLastSet -lt $passwordAgeThreshold) { 
+            return "Password Expired" } 
+        else { 
+            return "Password Valid" 
+        }
     }
     return "No Password Data"
 }
