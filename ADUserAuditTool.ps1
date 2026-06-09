@@ -1,3 +1,4 @@
+
 Import-Module ActiveDirectory
 
 <#
@@ -26,21 +27,6 @@ function Get-OU {
     return $ouList
 }
 
-function Get-ADUser {
-    param (
-        [string]$Filter,
-        [string[]]$Properties
-    )
-    Get-ADUser -Filter $Filter -Properties $Properties
-}
-
-function Get-ADGroupMember {
-    param (
-        [string]$GroupName
-    )
-    Get-ADGroupMember -Identity $GroupName
-}
-
 function Get-ADUserLastLogon {
     param (
         [string]$Username
@@ -63,14 +49,6 @@ function Get-ADUserAccountStatus {
     )
     $user = Get-ADUser -Identity $Username -Properties Enabled
     return if ($user.Enabled) { "Enabled" } else { "Disabled" }
-}
-
-function Get-ADUserDepartment {
-    param (
-        [string]$Username
-    )
-    $user = Get-ADUser -Identity $Username -Properties Department
-    return $user.Department
 }
 
 function Get-ADUserTitle {
