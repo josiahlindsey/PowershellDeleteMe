@@ -71,10 +71,7 @@ function Get-ADUserGroupMembership {
 }
 
 function Get-ADUserLockedStatus {
-    param (
-        [string]$Username
-    )
-    $user = Get-ADUser -Identity $Username -Properties LockedOut
+    param ($User)
     if ($user.LockedOut) { 
         return "Locked" } 
     else { 
@@ -82,30 +79,30 @@ function Get-ADUserLockedStatus {
         }
 }
 
-function Get-ADUserPrivilegedStatus {
-    param (
-        [string]$Username
-    )
+function Get-PrivilegedUserSet {
     $privilegedGroups = @("Domain Admins", "Enterprise Admins", "Administrators")
-    $userGroups = Get-ADUserGroupMembership -Username $Username
-    foreach ($group in $userGroups) {
-        if ($privilegedGroups -contains (Get-ADGroup -Identity $group).Name) {
-            return "Privileged"
+    $privilegedUsers = @()
+    foreach ($groupName in $privilegedGroups) {
+        try {
+            Get-ADGroupMember -Identity $groupName -Recursive |
+                Where-Object { $_.objectClass -eq "user" } |
+                ForEach-Object {$privilegedUsers[$_.SamAccountName] = $true}
+        } 
+        catch {
+            Write-Warning "Could not retrieve members of group '$groupName'. Error: $_"
+            }
         }
-    }
-    return "Standard"
+    return $privilegedUsers
 }
 
 function Get-ADUserInactiveStatus {
     param (
-        [string]$Username,
+        $User,
         [int]$DaysInactive = 30
     )
-    $lastLogon = Get-ADUserLastLogon -Username $Username
-    if ($null -ne $lastLogon) {
+    if ($null -ne $User.LastLogonDate) {
         $inactiveThreshold = (Get-Date).AddDays(-$DaysInactive)
-        
-        if ($lastLogon -lt $inactiveThreshold) { 
+        if ($User.LastLogonDate -lt $inactiveThreshold) { 
             return "Inactive" } 
         else { 
             return "Active" 
@@ -116,13 +113,12 @@ function Get-ADUserInactiveStatus {
 
 function Get-ADUserPasswordAgeStatus {
     param (
-        [string]$Username,
+        $User,
         [int]$DaysPasswordAge = 180
     )
-    $passwordLastSet = Get-ADUserPasswordLastSet -Username $Username
-    if ($null -ne $passwordLastSet) {
+    if ($null -ne $User.PasswordLastSet) {
         $passwordAgeThreshold = (Get-Date).AddDays(-$DaysPasswordAge)
-        if ($passwordLastSet -lt $passwordAgeThreshold) { 
+        if ($User.PasswordLastSet -lt $passwordAgeThreshold) { 
             return "Password Older than 180 Days" } 
         else { 
             return "Password Valid" 
@@ -139,7 +135,10 @@ function Get-ADUserDisabledStatus {
 }
 
 function Get-ADUserAuditReport {
-    $users = Get-ADUser -Filter * -Properties Name, SamAccountName, Enabled, LastLogonDate, PasswordLastSet, Department, Title, DistinguishedName
+    $users = Get-ADUser -Filter * -Properties Name, SamAccountName, Enabled, LastLogonDate, PasswordLastSet, Department, Title, DistinguishedName, LockedOut
+
+    $privilegedUsers = Get-PrivilegedUserSet
+
     $report = @()
     foreach ($user in $users) {
         $report += [PSCustomObject]@{
@@ -151,10 +150,10 @@ function Get-ADUserAuditReport {
             Department       = $user.Department
             Title            = $user.Title
             OU               = ($user.DistinguishedName -split ",",2)[1]
-            LockedStatus     = Get-ADUserLockedStatus -Username $user.SamAccountName
-            PrivilegedStatus = Get-ADUserPrivilegedStatus -Username $user.SamAccountName
-            InactiveStatus   = Get-ADUserInactiveStatus -Username $user.SamAccountName
-            PasswordAgeStatus= Get-ADUserPasswordAgeStatus -Username $user.SamAccountName
+            LockedStatus     = Get-ADUserLockedStatus -User $user
+            PrivilegedStatus = if ($privilegedUsers.ContainsKey($user.SamAccountName)) { "Privileged" } else { "Standard" }
+            InactiveStatus   = Get-ADUserInactiveStatus -User $user
+            PasswordAgeStatus= Get-ADUserPasswordAgeStatus -User $user
         }
     }
     return $report
