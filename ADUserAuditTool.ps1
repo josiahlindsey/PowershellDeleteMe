@@ -81,7 +81,7 @@ function Get-ADUserLockedStatus {
 
 function Get-PrivilegedUserSet {
     $privilegedGroups = @("Domain Admins", "Enterprise Admins", "Administrators")
-    $privilegedUsers = @()
+    $privilegedUsers = @{}
     foreach ($groupName in $privilegedGroups) {
         try {
             Get-ADGroupMember -Identity $groupName -Recursive |
