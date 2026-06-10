@@ -21,7 +21,7 @@ $ErrorActionPreference = "Stop"
 
 function Get-ADUserLockedStatus {
     param ($User)
-    if ($user.LockedOut) { 
+    if ($User.LockedOut) { 
         return "Locked" } 
     else { 
         return "Not Locked" 
@@ -68,7 +68,7 @@ function Get-ADUserPasswordAgeStatus {
     if ($null -ne $User.PasswordLastSet) {
         $passwordAgeThreshold = (Get-Date).AddDays(-$DaysPasswordAge)
         if ($User.PasswordLastSet -lt $passwordAgeThreshold) { 
-            return "Password Older than 180 Days" } 
+            return "Password Older than $DaysPasswordAge Days" } 
         else { 
             return "Password Valid" 
         }
@@ -81,9 +81,8 @@ function Get-ADUserAuditReport {
 
     $privilegedUsers = Get-PrivilegedUserSet
 
-    $report = @()
     foreach ($user in $users) {
-        $report += [PSCustomObject]@{
+        [PSCustomObject]@{
             Name             = $user.Name
             Username         = $user.SamAccountName
             Status           = if ($user.Enabled) { "Enabled" } else { "Disabled" }
@@ -98,7 +97,6 @@ function Get-ADUserAuditReport {
             PasswordAgeStatus= Get-ADUserPasswordAgeStatus -User $user
         }
     }
-    return $report
 }
 
 Get-ADUserAuditReport | Format-Table -AutoSize
