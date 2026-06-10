@@ -18,57 +18,6 @@ Collects: Name, Username, Status, Last Logon Time, Password Last Set, Department
 
 $ErrorActionPreference = "Stop"
 
-function Get-ADUserLastLogon {
-    param (
-        [string]$Username
-    )
-    $user = Get-ADUser -Identity $Username -Properties LastLogonDate
-    return $user.LastLogonDate
-}
-
-function Get-ADUserPasswordLastSet {
-    param (
-        [string]$Username
-    )
-    $user = Get-ADUser -Identity $Username -Properties PasswordLastSet
-    return $user.PasswordLastSet
-}
-
-function Get-ADUserAccountStatus {
-    param (
-        [string]$Username
-    )
-    $user = Get-ADUser -Identity $Username -Properties Enabled
-    if ($user.Enabled) { 
-        return "Enabled" } 
-    else { 
-        return "Disabled" 
-    }
-}
-
-function Get-ADUserTitle {
-    param (
-        [string]$Username
-    )
-    $user = Get-ADUser -Identity $Username -Properties Title
-    return $user.Title
-}
-
-function Get-ADUserOU {
-    param (
-        [string]$Username
-    )
-    $user = Get-ADUser -Identity $Username -Properties DistinguishedName
-    return ($user.DistinguishedName -split ",",2)[1]
-}
-
-function Get-ADUserGroupMembership {
-    param (
-        [string]$Username
-    )
-    $groups = Get-ADUser -Identity $Username -Properties MemberOf
-    return $groups.MemberOf
-}
 
 function Get-ADUserLockedStatus {
     param ($User)
@@ -125,13 +74,6 @@ function Get-ADUserPasswordAgeStatus {
         }
     }
     return "No Password Data"
-}
-
-function Get-ADUserDisabledStatus {
-    param (
-        [string]$Username
-    )
-    return Get-ADUserAccountStatus -Username $Username
 }
 
 function Get-ADUserAuditReport {
