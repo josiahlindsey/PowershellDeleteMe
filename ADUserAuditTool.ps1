@@ -101,4 +101,4 @@ function Get-ADUserAuditReport {
 
 $report = Get-ADUserAuditReport
 
-$report | Format-Table -AutoSize
+$report | Format-List
