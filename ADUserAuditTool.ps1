@@ -59,8 +59,7 @@ function Get-ADUserOU {
         [string]$Username
     )
     $user = Get-ADUser -Identity $Username -Properties DistinguishedName
-    $ouList = Get-OU
-    return $ouList[$user.DistinguishedName]
+    return ($user.DistinguishedName -split ",",2)[1]
 }
 
 function Get-ADUserGroupMembership {
