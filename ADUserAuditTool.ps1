@@ -2,8 +2,8 @@
 Import-Module ActiveDirectory
 
 <#
-#Active Directory User Audit Tool
-#This script will audit Active Directory users and report on various attributes such as last logon time, password last set, Inactive accounts, account status, and more. 
+Active Directory User Audit Tool
+This script will audit Active Directory users and report on various attributes such as last logon time, password last set, Inactive accounts, account status, and more. 
 
 Audit Categories:
 1. Disabled Accounts
@@ -102,3 +102,8 @@ function Get-ADUserAuditReport { # Main function to generate the Active Director
 $report = Get-ADUserAuditReport # Generate the Active Directory user audit report by calling the main function
 
 $report | Format-List # Output the report in a formatted list for better readability in the console
+
+$date = Get-Date -Format "yyyy-MM-dd_HH-mm-ss" # Get the current date and time in a specific format for use in the filename
+$csvPath = "$env:USERPROFILE\Desktop\ADUserAuditReport_$date.csv" # Define the path for the CSV file on the user's desktop, including the date and time in the filename
+$report | Export-Csv -Path $csvPath -NoTypeInformation # Export the report to a CSV file at the specified path without including type information in the output
+Write-Host "Audit report complete. Report saved to $csvPath" # Output a message to the console indicating where the report has been saved
